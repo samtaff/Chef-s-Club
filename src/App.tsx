@@ -137,6 +137,7 @@ export default function App() {
 
   const handleAddCustomPhoto = (newPhoto: PhotoLibraryItem) => {
     setPhotos((prev) => [newPhoto, ...prev]);
+    showToast('Photo ajoutée à la bibliothèque');
   };
 
   const handleUpdatePhoto = (updatedPhoto: PhotoLibraryItem) => {
@@ -559,7 +560,7 @@ export default function App() {
 
             {/* Photo Library Manager Button */}
             <button
-              onClick={() => setIsPhotoModalOpen(true)}
+              onClick={() => handleOpenPhotoModal(undefined, undefined)}
               className="px-3 py-2 bg-white/60 hover:bg-white/90 text-slate-800 border border-white/80 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all shadow-xs"
               title="Ouvrir la bibliothèque de photos de plats"
             >

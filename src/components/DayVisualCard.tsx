@@ -219,13 +219,13 @@ export const DayVisualCard: React.FC<DayVisualCardProps> = ({
               {dateParts && (
                 <div
                   style={{ color: '#001489' }}
-                  className="flex flex-col justify-center items-start font-sans-clean select-none tracking-tight h-[45px] pl-1.5 border-l-2 border-[#001489]/25"
+                  className="flex flex-col justify-center items-start font-sans-clean select-none tracking-tight pl-2 border-l-2 border-[#001489]/25"
                 >
-                  <span className="tabular-nums font-extrabold text-[24px] leading-none">
+                  <span className="tabular-nums font-extrabold text-[22px] leading-none">
                     {dateParts.dayPart}
                   </span>
                   {dateParts.monthPart ? (
-                    <span className="tabular-nums font-bold text-[15px] leading-none text-[#001489]/85 uppercase tracking-wide mt-0.5">
+                    <span className="tabular-nums font-extrabold text-[22px] leading-none text-[#001489] uppercase tracking-wide mt-1">
                       {dateParts.monthPart}
                     </span>
                   ) : null}
@@ -265,11 +265,11 @@ export const DayVisualCard: React.FC<DayVisualCardProps> = ({
                         </span>
                       </div>
 
-                      {/* Row 2: Dish Name (Linéale Sans-Serif, #001489, Adaptive sizing, Never clipped) */}
+                      {/* Row 2: Dish Name (Linéale Sans-Serif, #001489, Adaptive sizing, Never clipped, line-breaks preserved) */}
                       <div className="min-h-[82px] max-h-[94px] flex items-center justify-center w-full text-center px-1 mb-1">
                         <h3
                           style={{ color: '#001489' }}
-                          className={`font-sans-clean font-extrabold text-center w-full break-words tracking-tight ${getDishTitleClass(
+                          className={`font-sans-clean font-extrabold text-center w-full break-words whitespace-pre-line tracking-tight ${getDishTitleClass(
                             dish.name
                           )}`}
                         >

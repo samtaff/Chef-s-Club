@@ -172,7 +172,7 @@ export const PhotoLibraryModal: React.FC<PhotoLibraryModalProps> = ({
     setIsCropperOpen(true);
   };
 
-  const handleConfirmUpload = async () => {
+  const handleConfirmUpload = async (applyToTarget: boolean = false) => {
     if (!pendingCroppedUrl) return;
     setIsUploading(true);
     try {
@@ -187,11 +187,13 @@ export const PhotoLibraryModal: React.FC<PhotoLibraryModalProps> = ({
         createdAt: Date.now(),
       };
       onAddPhoto(newPhotoItem);
-      onSelectPhoto(pendingCroppedUrl);
+      if (applyToTarget) {
+        onSelectPhoto(pendingCroppedUrl);
+        onClose();
+      }
       setPendingCroppedUrl(null);
       setPendingRawUrl(null);
       setUploadName('');
-      onClose();
     } catch (err) {
       console.error('Erreur lors de l’enregistrement de la photo', err);
     } finally {
@@ -360,15 +362,28 @@ export const PhotoLibraryModal: React.FC<PhotoLibraryModalProps> = ({
                   </div>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={handleConfirmUpload}
-                  disabled={isUploading}
-                  className="w-full sm:w-auto px-5 py-2.5 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer text-xs shrink-0"
-                >
-                  <Check className="w-4 h-4 stroke-[3]" />
-                  <span>Enregistrer et choisir</span>
-                </button>
+                <div className="flex flex-col sm:flex-row items-center gap-2 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => handleConfirmUpload(false)}
+                    disabled={isUploading}
+                    className="w-full sm:w-auto px-4 py-2.5 bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 font-bold rounded-xl shadow-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer text-xs"
+                    title="Enregistre la photo dans la bibliothèque sans remplacer le plat"
+                  >
+                    <Plus className="w-4 h-4 text-amber-600" />
+                    <span>Ajouter à la bibliothèque</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleConfirmUpload(true)}
+                    disabled={isUploading}
+                    className="w-full sm:w-auto px-5 py-2.5 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer text-xs"
+                  >
+                    <Check className="w-4 h-4 stroke-[3]" />
+                    <span>Ajouter &amp; Appliquer au plat</span>
+                  </button>
+                </div>
               </div>
             </div>
           ) : (
@@ -391,10 +406,34 @@ export const PhotoLibraryModal: React.FC<PhotoLibraryModalProps> = ({
                 ref={fileInputRef}
                 type="file"
                 accept="image/*"
+                multiple
                 className="hidden"
                 onChange={(e) => {
-                  if (e.target.files && e.target.files[0]) {
-                    handleFilePicked(e.target.files[0]);
+                  if (e.target.files && e.target.files.length > 0) {
+                    const files = Array.from(e.target.files) as File[];
+                    files.forEach((f: File, idx: number) => {
+                      if (idx === 0) {
+                        handleFilePicked(f);
+                      } else {
+                        // Batch load into library directly
+                        const reader = new FileReader();
+                        reader.onload = (ev) => {
+                          const url = ev.target?.result as string;
+                          if (url) {
+                            onAddPhoto({
+                              id: `custom-photo-${Date.now()}-${idx}`,
+                              name: f.name.replace(/\.[^/.]+$/, ''),
+                              category: 'plat',
+                              url,
+                              originalUrl: url,
+                              isCustom: true,
+                              createdAt: Date.now(),
+                            });
+                          }
+                        };
+                        reader.readAsDataURL(f);
+                      }
+                    });
                     e.target.value = '';
                   }
                 }}

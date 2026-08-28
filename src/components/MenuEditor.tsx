@@ -28,6 +28,8 @@ import {
   Award,
   Plus,
   X,
+  Upload,
+  Trash2,
 } from 'lucide-react';
 
 interface MenuEditorProps {
@@ -497,36 +499,81 @@ export const MenuEditor: React.FC<MenuEditorProps> = ({
                   className="p-4 bg-white/50 backdrop-blur-xs border border-white/70 rounded-xl space-y-3 relative group shadow-xs"
                 >
                   {/* Dish header badge & Actions */}
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
                     <span className="px-2.5 py-0.5 rounded-md bg-blue-100 border border-blue-200 text-[10px] font-bold text-blue-800 uppercase tracking-wider">
                       Plat {idx + 1}
                     </span>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      {/* Direct File Upload button for dish */}
+                      <label
+                        className="text-[11px] text-blue-700 hover:text-blue-900 font-semibold flex items-center gap-1 transition-colors px-2 py-0.5 rounded bg-blue-50 hover:bg-blue-100 border border-blue-200 cursor-pointer"
+                        title="Importer directement une photo depuis votre appareil"
+                      >
+                        <Upload className="w-3 h-3" />
+                        <span>Importer</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => {
+                            if (e.target.files && e.target.files[0]) {
+                              const file = e.target.files[0];
+                              const reader = new FileReader();
+                              reader.onload = (event) => {
+                                const result = event.target?.result as string;
+                                if (result) {
+                                  updateDish(idx, { imageUrl: result });
+                                  setDishCropperTarget({
+                                    dishIndex: idx,
+                                    imageSrc: result,
+                                    dishName: dish.name || `Plat ${idx + 1}`,
+                                  });
+                                }
+                              };
+                              reader.readAsDataURL(file);
+                              e.target.value = '';
+                            }
+                          }}
+                        />
+                      </label>
+
                       {dish.imageUrl && (
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setDishCropperTarget({
-                              dishIndex: idx,
-                              imageSrc: dish.imageUrl,
-                              dishName: dish.name || `Plat ${idx + 1}`,
-                            })
-                          }
-                          className="text-xs text-amber-700 hover:text-amber-900 font-semibold flex items-center gap-1 transition-colors px-2 py-0.5 rounded bg-amber-50 hover:bg-amber-100 border border-amber-200"
-                          title="Recadrer l'assiette en cercle"
-                        >
-                          <Crop className="w-3.5 h-3.5" />
-                          <span>Recadrer</span>
-                        </button>
+                        <>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setDishCropperTarget({
+                                dishIndex: idx,
+                                imageSrc: dish.imageUrl,
+                                dishName: dish.name || `Plat ${idx + 1}`,
+                              })
+                            }
+                            className="text-[11px] text-amber-700 hover:text-amber-900 font-semibold flex items-center gap-1 transition-colors px-2 py-0.5 rounded bg-amber-50 hover:bg-amber-100 border border-amber-200 cursor-pointer"
+                            title="Recadrer l'assiette en cercle"
+                          >
+                            <Crop className="w-3 h-3" />
+                            <span>Recadrer</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => updateDish(idx, { imageUrl: undefined })}
+                            className="text-[11px] text-red-600 hover:text-red-800 font-semibold flex items-center gap-1 transition-colors px-1.5 py-0.5 rounded hover:bg-red-50 cursor-pointer"
+                            title="Retirer la photo du plat"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        </>
                       )}
 
                       <button
                         type="button"
                         onClick={() => onOpenPhotoModal(idx)}
-                        className="text-xs text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-1 transition-colors"
+                        className="text-[11px] text-slate-700 hover:text-slate-950 font-semibold flex items-center gap-1 transition-colors px-2 py-0.5 rounded bg-slate-100 hover:bg-slate-200 border border-slate-300 cursor-pointer"
+                        title="Choisir parmi la galerie de photos"
                       >
-                        <ImageIcon className="w-3.5 h-3.5" />
+                        <ImageIcon className="w-3 h-3 text-amber-600" />
                         <span>Galerie</span>
                       </button>
                     </div>
