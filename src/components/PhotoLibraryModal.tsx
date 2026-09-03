@@ -75,6 +75,7 @@ export const PhotoLibraryModal: React.FC<PhotoLibraryModalProps> = ({
 
   // Editing existing photo meta state
   const [editingPhoto, setEditingPhoto] = useState<PhotoLibraryItem | null>(null);
+  const [photoToDelete, setPhotoToDelete] = useState<PhotoLibraryItem | null>(null);
   const [isDragging, setIsDragging] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -222,17 +223,18 @@ export const PhotoLibraryModal: React.FC<PhotoLibraryModalProps> = ({
     setEditingPhoto(null);
   };
 
-  const handleDeleteConfirmed = (photo: PhotoLibraryItem) => {
-    if (
-      window.confirm(
-        `Voulez-vous vraiment supprimer "${photo.name}" de la bibliothèque ?`
-      )
-    ) {
-      onDeletePhoto(photo.id);
-      if (previewPhoto && previewPhoto.id === photo.id) {
-        setPreviewPhoto(null);
-      }
+  const promptDeletePhoto = (photo: PhotoLibraryItem) => {
+    setPhotoToDelete(photo);
+  };
+
+  const handleExecuteDelete = () => {
+    if (!photoToDelete) return;
+    const id = photoToDelete.id;
+    onDeletePhoto(id);
+    if (previewPhoto && previewPhoto.id === id) {
+      setPreviewPhoto(null);
     }
+    setPhotoToDelete(null);
   };
 
   return (
@@ -637,7 +639,7 @@ export const PhotoLibraryModal: React.FC<PhotoLibraryModalProps> = ({
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleDeleteConfirmed(photo);
+                        promptDeletePhoto(photo);
                       }}
                       className="p-1.5 rounded-full bg-white text-red-600 hover:text-white hover:bg-red-600 transition-colors shadow-md cursor-pointer border border-slate-200"
                       title="Supprimer cette photo"
@@ -778,11 +780,50 @@ export const PhotoLibraryModal: React.FC<PhotoLibraryModalProps> = ({
               {/* Delete Button for ANY photo with confirmation */}
               <button
                 type="button"
-                onClick={() => handleDeleteConfirmed(previewPhoto)}
+                onClick={() => promptDeletePhoto(previewPhoto)}
                 className="w-full py-2 text-xs text-red-600 hover:text-red-800 hover:bg-red-50 rounded-xl font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
               >
                 <Trash2 className="w-3.5 h-3.5" />
                 <span>Supprimer cette photo de la bibliothèque</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal Dialog */}
+      {photoToDelete && (
+        <div
+          className="fixed inset-0 z-80 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in"
+          onClick={() => setPhotoToDelete(null)}
+        >
+          <div
+            className="w-full max-w-sm bg-white rounded-2xl p-6 shadow-2xl space-y-4 border border-slate-200 text-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="w-12 h-12 rounded-full bg-red-100 text-red-600 flex items-center justify-center mx-auto shadow-2xs">
+              <Trash2 className="w-6 h-6" />
+            </div>
+            <div>
+              <h4 className="text-base font-bold text-slate-900">Supprimer cette photo ?</h4>
+              <p className="text-xs text-slate-600 mt-1.5">
+                Êtes-vous sûr de vouloir supprimer définitivement <strong className="text-slate-800">« {photoToDelete.name} »</strong> de votre bibliothèque ?
+              </p>
+            </div>
+            <div className="flex items-center justify-center gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setPhotoToDelete(null)}
+                className="px-4 py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors cursor-pointer"
+              >
+                Annuler
+              </button>
+              <button
+                type="button"
+                onClick={handleExecuteDelete}
+                className="px-4 py-2 text-xs font-bold text-white bg-red-600 hover:bg-red-700 rounded-xl transition-colors cursor-pointer shadow-xs"
+              >
+                Oui, supprimer
               </button>
             </div>
           </div>

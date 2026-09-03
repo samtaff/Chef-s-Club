@@ -29,6 +29,9 @@ export interface DayMenu {
   dishes: Dish[];
   backgroundId: string;
   customBackgroundUrl?: string;
+  isHoliday?: boolean;
+  holidayText?: string;
+  holidaySubtext?: string;
 }
 
 export interface CoverPageData {

@@ -30,6 +30,7 @@ import {
   X,
   Upload,
   Trash2,
+  CalendarOff,
 } from 'lucide-react';
 
 interface MenuEditorProps {
@@ -205,19 +206,33 @@ export const MenuEditor: React.FC<MenuEditorProps> = ({
         <div className="grid grid-cols-6 gap-1.5">
           {tabList.map((tab) => {
             const isActive = activeTab === tab.id;
+            const isDayHoliday = tab.id !== 'cover' && menuData.days[tab.id as DayId]?.isHoliday;
             return (
               <button
                 key={tab.id}
                 onClick={() => onSelectTab(tab.id)}
-                className={`py-2 px-1 rounded-xl text-center transition-all flex flex-col items-center justify-center ${
+                className={`py-2 px-1 rounded-xl text-center transition-all flex flex-col items-center justify-center relative ${
                   isActive
                     ? 'bg-blue-600 text-white shadow-md font-bold'
+                    : isDayHoliday
+                    ? 'bg-amber-50/80 text-amber-900 hover:bg-amber-100/90 border border-amber-300/80'
                     : 'bg-white/40 text-slate-700 hover:text-slate-900 hover:bg-white/70 border border-white/40'
                 }`}
               >
-                <span className="text-xs sm:text-sm leading-tight">{tab.label}</span>
-                <span className={`text-[10px] truncate max-w-[55px] ${isActive ? 'text-blue-100 font-semibold' : 'text-slate-500'}`}>
-                  {tab.sub}
+                <div className="flex items-center gap-1">
+                  <span className="text-xs sm:text-sm leading-tight">{tab.label}</span>
+                  {isDayHoliday && (
+                    <span className={`w-1.5 h-1.5 rounded-full ${isActive ? 'bg-amber-300' : 'bg-amber-600'}`} />
+                  )}
+                </div>
+                <span className={`text-[10px] truncate max-w-[55px] ${
+                  isActive 
+                    ? 'text-blue-100 font-semibold' 
+                    : isDayHoliday 
+                    ? 'text-amber-700 font-bold' 
+                    : 'text-slate-500'
+                }`}>
+                  {isDayHoliday ? 'Férié' : tab.sub}
                 </span>
               </button>
             );
@@ -436,7 +451,7 @@ export const MenuEditor: React.FC<MenuEditorProps> = ({
         {/* ----------------- DAY PAGE EDITOR (Lundi to Vendredi) ----------------- */}
         {!isCover && currentDay && (
           <div className="space-y-4 animate-in fade-in duration-150">
-            {/* Header: Date + 2/3 Dishes Toggle */}
+            {/* Header: Date + Mode Toggle (Normal vs Férié/Fermé) + 2/3 Dishes Toggle */}
             <div className="p-4 bg-white/45 backdrop-blur-xs rounded-xl border border-white/60 space-y-3 shadow-xs">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-center">
                 {/* Date for the day */}
@@ -455,45 +470,173 @@ export const MenuEditor: React.FC<MenuEditorProps> = ({
                   />
                 </div>
 
-                {/* 2 or 3 dishes toggle selector */}
+                {/* Day status: Normal Menu vs Jour Férié / Fermé */}
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Nombre de plats sur la page
+                    Statut de la journée
                   </label>
                   <div className="grid grid-cols-2 gap-2 bg-white/60 p-1 rounded-lg border border-slate-200 shadow-2xs">
                     <button
                       type="button"
-                      onClick={() => setDishCount(2)}
-                      className={`py-1.5 px-3 rounded-md text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
-                        currentDay.dishCount === 2
+                      onClick={() => updateDayData((prev) => ({ ...prev, isHoliday: false }))}
+                      className={`py-1.5 px-2.5 rounded-md text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                        !currentDay.isHoliday
                           ? 'bg-blue-600 text-white shadow-xs'
                           : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
                       }`}
                     >
                       <Layers className="w-3.5 h-3.5" />
-                      2 Plats
+                      <span>Menu servi</span>
                     </button>
 
                     <button
                       type="button"
-                      onClick={() => setDishCount(3)}
-                      className={`py-1.5 px-3 rounded-md text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
-                        currentDay.dishCount === 3
-                          ? 'bg-blue-600 text-white shadow-xs'
+                      onClick={() =>
+                        updateDayData((prev) => ({
+                          ...prev,
+                          isHoliday: true,
+                          holidayText: prev.holidayText || 'JOUR FÉRIÉ',
+                          holidaySubtext:
+                            prev.holidaySubtext ||
+                            'Le restaurant est fermé ce jour. Nous aurons le plaisir de vous retrouver dès demain midi !',
+                        }))
+                      }
+                      className={`py-1.5 px-2.5 rounded-md text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                        currentDay.isHoliday
+                          ? 'bg-amber-600 text-white shadow-xs'
                           : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
                       }`}
                     >
-                      <Layers className="w-3.5 h-3.5" />
-                      3 Plats
+                      <CalendarOff className="w-3.5 h-3.5" />
+                      <span>Jour Férié / Fermé</span>
                     </button>
                   </div>
                 </div>
               </div>
+
+              {/* When in normal menu mode, show 2 vs 3 dishes selector */}
+              {!currentDay.isHoliday && (
+                <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between">
+                  <span className="text-xs font-semibold text-slate-700">
+                    Nombre de plats présentés :
+                  </span>
+                  <div className="inline-flex gap-1.5 bg-slate-100 p-1 rounded-lg border border-slate-200">
+                    <button
+                      type="button"
+                      onClick={() => setDishCount(2)}
+                      className={`py-1 px-3 rounded-md text-xs font-bold transition-all cursor-pointer ${
+                        currentDay.dishCount === 2
+                          ? 'bg-white text-blue-700 shadow-2xs font-extrabold'
+                          : 'text-slate-600 hover:text-slate-900'
+                      }`}
+                    >
+                      2 Plats
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setDishCount(3)}
+                      className={`py-1 px-3 rounded-md text-xs font-bold transition-all cursor-pointer ${
+                        currentDay.dishCount === 3
+                          ? 'bg-white text-blue-700 shadow-2xs font-extrabold'
+                          : 'text-slate-600 hover:text-slate-900'
+                      }`}
+                    >
+                      3 Plats
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
 
-            {/* Dishes List Accordion / Cards */}
-            <div className="space-y-3">
-              {currentDay.dishes.slice(0, currentDay.dishCount).map((dish, idx) => (
+            {/* Holiday Configuration Panel */}
+            {currentDay.isHoliday ? (
+              <div className="p-5 bg-gradient-to-br from-amber-50/80 to-white/70 backdrop-blur-xs rounded-2xl border border-amber-200/80 space-y-4 shadow-sm">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-amber-100 border border-amber-300 text-amber-800 flex items-center justify-center shadow-2xs shrink-0">
+                    <CalendarOff className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-slate-900">
+                      Journée sans menu pour {currentDay.dayName}
+                    </h4>
+                    <p className="text-xs text-slate-600">
+                      Un visuel officiel de fermeture élégant est automatiquement généré pour ce jour
+                    </p>
+                  </div>
+                </div>
+
+                {/* Quick Presets */}
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                    Modèles rapides d&apos;intitulé :
+                  </label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {[
+                      'JOUR FÉRIÉ',
+                      'FERMETURE EXCEPTIONNELLE',
+                      'PONT DU 1ER MAI',
+                      'PONT DE L’ASCENSION',
+                      '14 JUILLET',
+                      'FERMETURE ANNUELLE',
+                    ].map((preset) => (
+                      <button
+                        key={preset}
+                        type="button"
+                        onClick={() =>
+                          updateDayData((prev) => ({ ...prev, holidayText: preset }))
+                        }
+                        className={`px-2.5 py-1 rounded-lg text-[11px] font-bold border transition-colors cursor-pointer ${
+                          (currentDay.holidayText || 'JOUR FÉRIÉ') === preset
+                            ? 'bg-amber-600 text-white border-amber-600 shadow-2xs'
+                            : 'bg-white/80 hover:bg-white text-slate-700 border-slate-300'
+                        }`}
+                      >
+                        {preset}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Holiday Title Input */}
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Titre affiché au centre du visuel
+                  </label>
+                  <input
+                    type="text"
+                    value={currentDay.holidayText || 'JOUR FÉRIÉ'}
+                    onChange={(e) =>
+                      updateDayData((prev) => ({ ...prev, holidayText: e.target.value }))
+                    }
+                    placeholder="ex: JOUR FÉRIÉ"
+                    className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-xs font-bold text-slate-900 focus:outline-hidden focus:border-amber-500 shadow-2xs uppercase"
+                  />
+                </div>
+
+                {/* Holiday Subtext Message */}
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Message d&apos;information aux convives
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={
+                      currentDay.holidaySubtext !== undefined
+                        ? currentDay.holidaySubtext
+                        : 'Le restaurant est fermé ce jour. Nous aurons le plaisir de vous retrouver dès demain midi !'
+                    }
+                    onChange={(e) =>
+                      updateDayData((prev) => ({ ...prev, holidaySubtext: e.target.value }))
+                    }
+                    placeholder="Message d'information..."
+                    className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-xs text-slate-800 focus:outline-hidden focus:border-amber-500 shadow-2xs resize-none"
+                  />
+                </div>
+              </div>
+            ) : (
+              /* Normal Dishes list */
+              <div className="space-y-3">
+                {currentDay.dishes.slice(0, currentDay.dishCount).map((dish, idx) => (
                 <div
                   key={dish.id || idx}
                   className="p-4 bg-white/50 backdrop-blur-xs border border-white/70 rounded-xl space-y-3 relative group shadow-xs"
@@ -740,8 +883,9 @@ export const MenuEditor: React.FC<MenuEditorProps> = ({
                 </div>
               ))}
             </div>
-          </div>
-        )}
+          )}
+        </div>
+      )}
       </div>
 
       {/* Footer Helper Actions */}

@@ -2,7 +2,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import { AllergenDef, BackgroundItem, DayMenu, MenuTemplateId } from '../types';
 import { AllergenBadge } from './AllergenBadge';
 import { BadgesList } from './BadgeRenderer';
-import { UtensilsCrossed } from 'lucide-react';
+import { UtensilsCrossed, CalendarOff, Sparkles } from 'lucide-react';
 import { MENU_TEMPLATES } from '../data/templates';
 
 interface DayVisualCardProps {
@@ -234,127 +234,171 @@ export const DayVisualCard: React.FC<DayVisualCardProps> = ({
             </div>
           </header>
 
-          {/* 4. Dishes Section (Strict horizontal row alignment across all columns) */}
-          <main className="relative z-10 flex-1 my-auto px-2 flex items-center justify-center">
-            <div
-              className={`w-full grid ${
-                dishCount === 2 ? 'grid-cols-2 gap-6' : 'grid-cols-3 gap-3'
-              } items-center`}
-            >
-              {dishes.map((dish, index) => {
-                const isLast = index === dishes.length - 1;
-                const plateSize = 126;
-                const ringSize = 136;
+          {/* 4. Content Section: Holiday view OR Dishes grid */}
+          {dayMenu.isHoliday ? (
+            <main className="relative z-10 flex-1 my-auto px-6 flex flex-col items-center justify-center text-center">
+              <div className="w-full max-w-[560px] py-9 px-8 bg-white/55 backdrop-blur-md rounded-3xl border border-white/70 shadow-xl flex flex-col items-center justify-center space-y-5">
+                {/* Crest / Emblem */}
+                <div
+                  style={{
+                    backgroundColor: template.crestBg,
+                    color: template.crestIconColor,
+                    boxShadow: '0 12px 24px -4px rgba(0, 0, 0, 0.25)',
+                  }}
+                  className="w-20 h-20 rounded-full flex items-center justify-center border-2 border-white ring-4 ring-black/5"
+                >
+                  <CalendarOff className="w-10 h-10" />
+                </div>
 
-                return (
-                  <div
-                    key={dish.id || index}
-                    style={{
-                      borderColor: !isLast ? `${template.borderColor}30` : undefined,
-                    }}
-                    className={`relative h-full flex flex-col justify-center items-center text-center px-1.5 py-1 ${
-                      !isLast ? 'border-r' : ''
-                    }`}
+                {/* Holiday Main Title */}
+                <div className="space-y-2">
+                  <span className="inline-block px-4 py-1 rounded-full bg-[#001489]/10 text-[#001489] font-sans-clean font-extrabold text-xs uppercase tracking-[0.2em] border border-[#001489]/20">
+                    Fermeture Exceptionnelle
+                  </span>
+                  <h2
+                    style={{ color: '#001489' }}
+                    className="font-sans-clean font-extrabold text-[34px] leading-tight tracking-tight uppercase whitespace-pre-line"
                   >
-                    {/* Centered Column Content with fixed row heights for 100% horizontal alignment */}
-                    <div className="w-full flex flex-col items-center justify-center my-auto">
-                      {/* Row 1: Dish Number Label (25px) */}
-                      <div className="h-7 flex items-center justify-center w-full mb-1">
-                        <span className="font-sans-clean text-[25px] font-bold uppercase tracking-wide text-slate-400 text-center block w-full leading-none">
-                          Plat {index + 1}
-                        </span>
-                      </div>
+                    {dayMenu.holidayText || 'JOUR FÉRIÉ'}
+                  </h2>
+                </div>
 
-                      {/* Row 2: Dish Name (Linéale Sans-Serif, #001489, Adaptive sizing, Never clipped, line-breaks preserved) */}
-                      <div className="min-h-[82px] max-h-[94px] flex items-center justify-center w-full text-center px-1 mb-1">
-                        <h3
-                          style={{ color: '#001489' }}
-                          className={`font-sans-clean font-extrabold text-center w-full break-words whitespace-pre-line tracking-tight ${getDishTitleClass(
-                            dish.name
-                          )}`}
-                        >
-                          {dish.name || 'Nom du plat à renseigner'}
-                        </h3>
-                      </div>
+                {/* Subtle Divider Ornament */}
+                <div className="flex items-center justify-center gap-3 w-40">
+                  <div className="h-0.5 flex-1 bg-[#001489]/25" />
+                  <Sparkles className="w-4 h-4 text-amber-600" />
+                  <div className="h-0.5 flex-1 bg-[#001489]/25" />
+                </div>
 
-                      {/* Row 3: Dedicated Allergens Row (Strict horizontal alignment across all dishes) */}
-                      <div className="h-[28px] flex items-center justify-center w-full text-center mb-1">
-                        <AllergenBadge
-                          allergens={dish.allergens}
-                          customText={dish.customAllergenText}
-                          size="md"
-                          showLabel={true}
-                          allergensList={allergensList}
-                        />
-                      </div>
+                {/* Subtext Message */}
+                <p className="font-sans-clean text-base font-semibold text-slate-700 max-w-[460px] leading-relaxed whitespace-pre-line">
+                  {dayMenu.holidaySubtext ||
+                    'Le restaurant est fermé ce jour. Nous aurons le plaisir de vous retrouver dès demain midi !'}
+                </p>
+              </div>
+            </main>
+          ) : (
+            <main className="relative z-10 flex-1 my-auto px-2 flex items-center justify-center">
+              <div
+                className={`w-full grid ${
+                  dishCount === 2 ? 'grid-cols-2 gap-6' : 'grid-cols-3 gap-3'
+                } items-center`}
+              >
+                {dishes.map((dish, index) => {
+                  const isLast = index === dishes.length - 1;
+                  const plateSize = 126;
+                  const ringSize = 136;
 
-                      {/* Row 4: Dedicated Badges Row (Single-line French Meat Badges VBF, VF, LPF) */}
-                      <div className="h-[24px] flex items-center justify-center w-full text-center mb-1.5 overflow-visible">
-                        <BadgesList
-                          badges={dish.badges}
-                          showFrenchMeat={dish.showFrenchMeat}
-                          size="md"
-                        />
-                      </div>
-
-                      {/* Row 5: Circular Cutout Plate Top View (Fixed Height, centered with deep 3D realistic depth) */}
-                      <div className="h-[146px] flex items-center justify-center relative shrink-0 w-full">
-                        {/* Layer 1: Ambient Contact Floor Shadow for dramatic depth */}
-                        <div
-                          style={{
-                            width: `${plateSize - 8}px`,
-                            height: `${plateSize - 8}px`,
-                            background: 'radial-gradient(circle, rgba(0,0,0,0.60) 0%, rgba(0,0,0,0.30) 50%, rgba(0,0,0,0) 75%)',
-                          }}
-                          className="absolute rounded-full blur-[8px] translate-y-3.5 pointer-events-none opacity-90"
-                        />
-
-                        {/* Layer 2: Elevated Porcelain Plate with multi-tier rich drop shadow and rim lighting */}
-                        <div
-                          style={{
-                            width: `${plateSize}px`,
-                            height: `${plateSize}px`,
-                            minWidth: `${plateSize}px`,
-                            minHeight: `${plateSize}px`,
-                            boxShadow:
-                              '0 20px 32px -4px rgba(0, 0, 0, 0.48), 0 10px 16px -2px rgba(0, 0, 0, 0.32), 0 3px 6px -1px rgba(0, 0, 0, 0.22), inset 0 2px 4px rgba(255, 255, 255, 0.75), inset 0 -2px 4px rgba(0, 0, 0, 0.20)',
-                          }}
-                          className="relative rounded-full overflow-hidden border-[3.5px] border-white ring-1 ring-black/15 bg-white flex items-center justify-center mx-auto transition-transform z-10"
-                        >
-                          {dish.imageUrl ? (
-                            <img
-                              src={dish.imageUrl}
-                              alt={dish.name}
-                              crossOrigin="anonymous"
-                              className="w-full h-full object-cover object-center"
-                            />
-                          ) : (
-                            <div className="w-full h-full bg-slate-50 flex flex-col items-center justify-center p-2 text-slate-400">
-                              <UtensilsCrossed
-                                style={{ color: template.primaryColor }}
-                                className="w-7 h-7 mb-1 opacity-40"
-                              />
-                              <span className="text-[10px] font-semibold text-slate-500">Assiette</span>
-                            </div>
-                          )}
+                  return (
+                    <div
+                      key={dish.id || index}
+                      style={{
+                        borderColor: !isLast ? `${template.borderColor}30` : undefined,
+                      }}
+                      className={`relative h-full flex flex-col justify-center items-center text-center px-1.5 py-1 ${
+                        !isLast ? 'border-r' : ''
+                      }`}
+                    >
+                      {/* Centered Column Content with fixed row heights for 100% horizontal alignment */}
+                      <div className="w-full flex flex-col items-center justify-center my-auto">
+                        {/* Row 1: Dish Number Label (25px) */}
+                        <div className="h-7 flex items-center justify-center w-full mb-1">
+                          <span className="font-sans-clean text-[25px] font-bold uppercase tracking-wide text-slate-400 text-center block w-full leading-none">
+                            Plat {index + 1}
+                          </span>
                         </div>
 
-                        {/* Subtle decorative ring accent matching template accent */}
-                        <div
-                          style={{
-                            width: `${ringSize}px`,
-                            height: `${ringSize}px`,
-                            borderColor: `${template.accentColor}55`,
-                          }}
-                          className="absolute rounded-full border pointer-events-none z-0"
-                        />
+                        {/* Row 2: Dish Name (Linéale Sans-Serif, #001489, Adaptive sizing, Never clipped, line-breaks preserved) */}
+                        <div className="min-h-[82px] max-h-[94px] flex items-center justify-center w-full text-center px-1 mb-1">
+                          <h3
+                            style={{ color: '#001489' }}
+                            className={`font-sans-clean font-extrabold text-center w-full break-words whitespace-pre-line tracking-tight ${getDishTitleClass(
+                              dish.name
+                            )}`}
+                          >
+                            {dish.name || 'Nom du plat à renseigner'}
+                          </h3>
+                        </div>
+
+                        {/* Row 3: Dedicated Allergens Row (Strict horizontal alignment across all dishes) */}
+                        <div className="h-[28px] flex items-center justify-center w-full text-center mb-1">
+                          <AllergenBadge
+                            allergens={dish.allergens}
+                            customText={dish.customAllergenText}
+                            size="md"
+                            showLabel={true}
+                            allergensList={allergensList}
+                          />
+                        </div>
+
+                        {/* Row 4: Dedicated Badges Row (Single-line French Meat Badges VBF, VF, LPF) */}
+                        <div className="h-[24px] flex items-center justify-center w-full text-center mb-1.5 overflow-visible">
+                          <BadgesList
+                            badges={dish.badges}
+                            showFrenchMeat={dish.showFrenchMeat}
+                            size="md"
+                          />
+                        </div>
+
+                        {/* Row 5: Circular Cutout Plate Top View (Fixed Height, centered with deep 3D realistic depth) */}
+                        <div className="h-[146px] flex items-center justify-center relative shrink-0 w-full">
+                          {/* Layer 1: Ambient Contact Floor Shadow for dramatic depth */}
+                          <div
+                            style={{
+                              width: `${plateSize - 8}px`,
+                              height: `${plateSize - 8}px`,
+                              background: 'radial-gradient(circle, rgba(0,0,0,0.60) 0%, rgba(0,0,0,0.30) 50%, rgba(0,0,0,0) 75%)',
+                            }}
+                            className="absolute rounded-full blur-[8px] translate-y-3.5 pointer-events-none opacity-90"
+                          />
+
+                          {/* Layer 2: Elevated Porcelain Plate with multi-tier rich drop shadow and rim lighting */}
+                          <div
+                            style={{
+                              width: `${plateSize}px`,
+                              height: `${plateSize}px`,
+                              minWidth: `${plateSize}px`,
+                              minHeight: `${plateSize}px`,
+                              boxShadow:
+                                '0 20px 32px -4px rgba(0, 0, 0, 0.48), 0 10px 16px -2px rgba(0, 0, 0, 0.32), 0 3px 6px -1px rgba(0, 0, 0, 0.22), inset 0 2px 4px rgba(255, 255, 255, 0.75), inset 0 -2px 4px rgba(0, 0, 0, 0.20)',
+                            }}
+                            className="relative rounded-full overflow-hidden border-[3.5px] border-white ring-1 ring-black/15 bg-white flex items-center justify-center mx-auto transition-transform z-10"
+                          >
+                            {dish.imageUrl ? (
+                              <img
+                                src={dish.imageUrl}
+                                alt={dish.name}
+                                crossOrigin="anonymous"
+                                className="w-full h-full object-cover object-center"
+                              />
+                            ) : (
+                              <div className="w-full h-full bg-slate-50 flex flex-col items-center justify-center p-2 text-slate-400">
+                                <UtensilsCrossed
+                                  style={{ color: template.primaryColor }}
+                                  className="w-7 h-7 mb-1 opacity-40"
+                                />
+                                <span className="text-[10px] font-semibold text-slate-500">Assiette</span>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Subtle decorative ring accent matching template accent */}
+                          <div
+                            style={{
+                              width: `${ringSize}px`,
+                              height: `${ringSize}px`,
+                              borderColor: `${template.accentColor}55`,
+                            }}
+                            className="absolute rounded-full border pointer-events-none z-0"
+                          />
+                        </div>
                       </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
-          </main>
+                  );
+                })}
+              </div>
+            </main>
+          )}
 
           {/* 5. Footer Mention */}
           <footer
